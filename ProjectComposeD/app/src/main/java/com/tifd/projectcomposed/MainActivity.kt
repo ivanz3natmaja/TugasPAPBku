@@ -3,27 +3,26 @@ package com.tifd.projectcomposed
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.tooling.preview.Preview
-import com.tifd.projectcomposed.ui.theme.ProjectComposeDTheme
 import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.shape.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import com.tifd.projectcomposed.ui.theme.ProjectComposeDTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,7 +30,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ProjectComposeDTheme {
                 Surface(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     InputOutputApp()
@@ -41,39 +40,117 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-@Preview(showBackground = true)
 @Composable
 fun InputOutputApp() {
+    var inputText by remember { mutableStateOf("") }
+    var secondInputText by remember { mutableStateOf("") } // State for the second text field
     var text by remember { mutableStateOf("") }
-    var outputText by remember { mutableStateOf("") }
-
+    var showText by remember { mutableStateOf(false) }
     Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = "I Wayan Zenatmaja_225150207111020",
-            fontSize = 20.sp,
-            modifier = Modifier.padding(top = 20.dp),
-            color = Color(0xFF6D4C41)
-        )
-        TextField(
-            value = text,
-            onValueChange = { text = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Masukkan teks",color=Color(0xFFB71C1C)) }
-        )
-        Button(
-            onClick = { outputText = text },
-            modifier = Modifier.padding(top = 8.dp),
-            shape =  RoundedCornerShape(10.dp)
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Tampilkan Teks",color=Color(0xFF03DAC5))
+            Spacer(modifier = Modifier.width(8.dp))
+
+            OutlinedTextField(
+                value = inputText,
+                onValueChange = { inputText = it },
+                label = { Text(text = "Masukkan nama") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.AccountCircle,
+                        contentDescription = "Icon Profile",
+                        tint = Color.Black,
+                        modifier = Modifier.size(25.dp)
+                    )
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(90.dp)
+            )
         }
-        Text(
-            text = outputText,
-            fontSize = 20.sp,
-            modifier = Modifier.padding(top = 16.dp), color=Color(0xFF388E3C)
-        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Spacer(modifier = Modifier.width(8.dp))
+            OutlinedTextField(
+                value = secondInputText,
+                onValueChange = {
+                    // Allow only digits in the input
+                    if (it.all { char -> char.isDigit() }) {
+                        secondInputText = it
+                    }
+                },
+                label = { Text(text = "Masukkan NIM") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.AccountCircle,
+                        contentDescription = "Icon Profile",
+                        tint = Color.Black,
+                        modifier = Modifier.size(25.dp)
+                    )
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(90.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                text = "$inputText\n$secondInputText"
+                showText=true
+            },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            Text(text = "Submit")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (showText){
+            Box(
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
+                    .padding(16.dp)
+            ) {
+                Text (
+                    text = text,
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                )
+            }
+
+        }
+
+
     }
 }
 
+
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewInputOutputApp() {
+    ProjectComposeDTheme {
+        InputOutputApp()
+    }
+}
