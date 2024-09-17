@@ -1,27 +1,32 @@
 package com.tifd.projectcomposed
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Alignment
+import androidx.compose.material.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.combinedClickable
 import com.tifd.projectcomposed.ui.theme.ProjectComposeDTheme
 
 class MainActivity : ComponentActivity() {
@@ -40,12 +45,18 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun InputOutputApp() {
     var inputText by remember { mutableStateOf("") }
-    var secondInputText by remember { mutableStateOf("") } // State for the second text field
+    var secondInputText by remember { mutableStateOf("") }
     var text by remember { mutableStateOf("") }
     var showText by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+
+    val isForaFilled by remember { derivedStateOf { inputText.isNotEmpty() && secondInputText.isNotEmpty() } }
+
     Column(modifier = Modifier.padding(16.dp)) {
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -77,7 +88,6 @@ fun InputOutputApp() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -86,7 +96,6 @@ fun InputOutputApp() {
             OutlinedTextField(
                 value = secondInputText,
                 onValueChange = {
-                    // Allow only digits in the input
                     if (it.all { char -> char.isDigit() }) {
                         secondInputText = it
                     }
@@ -113,23 +122,32 @@ fun InputOutputApp() {
         Button(
             onClick = {
                 text = "$inputText\n$secondInputText"
-                showText=true
+                showText = true
             },
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = { text = "$inputText\n$secondInputText"
+                        showText = true },
+                    onLongClick = {
+                        // Show a toast with name and NIM on long click
+                        Toast.makeText(context, "Nama: $inputText, NIM: $secondInputText", Toast.LENGTH_SHORT).show()
+                    }
+                ),
+            enabled = isForaFilled,
+            colors = ButtonDefaults.buttonColors()
         ) {
             Text(text = "Submit")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (showText){
-            Box(
+        if (showText) {
+            Column(
                 modifier = Modifier
                     .padding(top = 16.dp)
-                    .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
-                    .padding(16.dp)
             ) {
-                Text (
+                Text(
                     text = text,
                     style = TextStyle(
                         fontSize = 16.sp,
@@ -138,19 +156,6 @@ fun InputOutputApp() {
                     )
                 )
             }
-
         }
-
-
-    }
-}
-
-
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewInputOutputApp() {
-    ProjectComposeDTheme {
-        InputOutputApp()
     }
 }
