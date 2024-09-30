@@ -1,5 +1,6 @@
 package com.tifd.projectcomposed
-
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -27,7 +28,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.combinedClickable
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
 import com.tifd.projectcomposed.ui.theme.ProjectComposeDTheme
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,114 +56,102 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun InputOutputApp() {
+    val navController = rememberNavController()
     var inputText by remember { mutableStateOf("") }
     var secondInputText by remember { mutableStateOf("") }
-    var text by remember { mutableStateOf("") }
     var showText by remember { mutableStateOf(false) }
+    val auth: FirebaseAuth = Firebase.auth
 
     val context = LocalContext.current
 
-    val isForaFilled by remember { derivedStateOf { inputText.isNotEmpty() && secondInputText.isNotEmpty() } }
+    val isFormFilled by remember { derivedStateOf { inputText.isNotEmpty() && secondInputText.isNotEmpty() } }
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    fun signInWithEmailAndPassword(email: String, password: String, context: Context) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(context, "Authentication success.", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(context, ListActivity::class.java)
+                    context.startActivity(intent)
+                } else {
+                    // Dapatkan pesan kesalahan yang lebih spesifik
+                    val exception = task.exception
+                    val errorMessage = exception?.localizedMessage ?: "Authentication failed."
+                    Toast.makeText(context, "Authentication failed: $errorMessage", Toast.LENGTH_LONG).show()
+                }
+            }
+    }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Spacer(modifier = Modifier.width(8.dp))
-
-            OutlinedTextField(
-                value = inputText,
-                onValueChange = { inputText = it },
-                label = { Text(text = "Masukkan nama") },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Filled.AccountCircle,
-                        contentDescription = "Icon Profile",
-                        tint = Color.Black,
-                        modifier = Modifier.size(25.dp)
-                    )
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(90.dp)
-            )
-        }
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center
+    ) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Spacer(modifier = Modifier.width(8.dp))
-            OutlinedTextField(
-                value = secondInputText,
-                onValueChange = {
-                    if (it.all { char -> char.isDigit() }) {
-                        secondInputText = it
-                    }
-                },
-                label = { Text(text = "Masukkan NIM") },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Filled.AccountCircle,
-                        contentDescription = "Icon Profile",
-                        tint = Color.Black,
-                        modifier = Modifier.size(25.dp)
-                    )
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(90.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-        }
+        OutlinedTextField(
+            value = inputText,
+            onValueChange = { inputText = it },
+            label = { Text(text = "Masukkan alamat email") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.AccountCircle,
+                    contentDescription = "Icon Profile",
+                    tint = Color.Black,
+                    modifier = Modifier.size(25.dp)
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(90.dp),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = secondInputText,
+            onValueChange = {
+                if (it.all { char -> char.isDigit() } && it.length <= 1000) { // Misalnya, NIM maksimal 10 digit
+                    secondInputText = it
+                }
+            },
+            label = { Text(text = "Masukkan Password (NIM Anda)") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.AccountCircle,
+                    contentDescription = "Icon Profile",
+                    tint = Color.Black,
+                    modifier = Modifier.size(25.dp)
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(90.dp),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {
-                text = "$inputText\n$secondInputText"
-                showText = true
+                val email = inputText.trim()
+                val password = secondInputText.trim()
+                signInWithEmailAndPassword(email, password, context)
             },
             modifier = Modifier
-                .fillMaxWidth()
-                .combinedClickable(
-                    onClick = { text = "$inputText\n$secondInputText"
-                        showText = true },
-                    onLongClick = {
-                        // Show a toast with name and NIM on long click
-                        Toast.makeText(context, "Nama: $inputText, NIM: $secondInputText", Toast.LENGTH_SHORT).show()
-                    }
-                ),
-            enabled = isForaFilled,
-            colors = ButtonDefaults.buttonColors()
+                .fillMaxWidth(),
+            enabled = isFormFilled,
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text(text = "Submit")
+            Text(text = "Submit", color = Color.White, fontSize = 16.sp)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        if (showText) {
-            Column(
-                modifier = Modifier
-                    .padding(top = 16.dp)
-            ) {
-                Text(
-                    text = text,
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                )
-            }
-        }
     }
 }
+
