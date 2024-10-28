@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,9 +32,9 @@ import com.tifd.projectcomposed.data.model.Profile
 
 @Composable
     fun ProfileScreen(viewModel: MainViewModel = viewModel()) {
-        val user by viewModel.user.collectAsState()
-        val errorMessage by viewModel.error.collectAsState()
-        val isLoading by viewModel.isLoading.collectAsState()
+    val user by remember { mutableStateOf<Profile?>(null) }
+    val errorMessage by remember { mutableStateOf<String?>(null) }
+    val isLoading by remember { mutableStateOf(true) }
 
         LaunchedEffect(Unit) {
             viewModel.getProfileUser("ivanz3natmaja")
