@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -45,6 +46,13 @@ fun AuthContent(onSuccessfulLogin: () -> Unit) {
     var password by remember { mutableStateOf("") }
     val auth: FirebaseAuth = Firebase.auth
     val context = LocalContext.current
+    val emailRegex = Regex("^[A-Za-z0-9._%+-]+@student\\.ub\\.ac\\.id$")
+    val isEmailValid by remember {
+        derivedStateOf { emailRegex.matches(email) }
+    }
+    val isPasswordValid by remember {
+        derivedStateOf { password.length >= 15 }
+    }
 
     val isFormFilled by remember {
         derivedStateOf { email.isNotEmpty() && password.isNotEmpty() }
@@ -83,6 +91,7 @@ fun AuthContent(onSuccessfulLogin: () -> Unit) {
 
                 OutlinedTextField(
                     value = email,
+                    isError = !isEmailValid,
                     onValueChange = { email = it },
                     label = { Text(text = "Masukkan alamat email") },
                     leadingIcon = {
@@ -104,6 +113,7 @@ fun AuthContent(onSuccessfulLogin: () -> Unit) {
 
                 OutlinedTextField(
                     value = password,
+                    isError =!isPasswordValid,
                     onValueChange = {
                         if (it.all { char -> char.isDigit() } && it.length <= 1000) { // For example, NIM max 1000 digits
                             password = it
@@ -112,7 +122,7 @@ fun AuthContent(onSuccessfulLogin: () -> Unit) {
                     label = { Text(text = "Masukkan Password (NIM Anda)") },
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Filled.AccountCircle,
+                            imageVector = Icons.Filled.Lock,
                             contentDescription = "Icon Password",
                             tint = Color.Black,
                             modifier = Modifier.size(25.dp)

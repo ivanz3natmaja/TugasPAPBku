@@ -32,6 +32,10 @@
             android:exported="false"
             android:label="@string/title_activity_list"
             android:theme="@style/Theme.ProjectComposeD" />
+
+        <activity
+            android:name=".CameraActivity" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

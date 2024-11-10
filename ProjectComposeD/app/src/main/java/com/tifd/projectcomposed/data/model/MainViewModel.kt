@@ -10,20 +10,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class MainViewModel(private val tugasRepository: TugasRepository) : ViewModel() {
+public class MainViewModel(private val tugasRepository: TugasRepository) : ViewModel() {
     private val profileRepository = ProfileRepository()
 
-    private val _tugasList = MutableLiveData<List<Tugas>>()
+    private val _tugasList = MutableLiveData<List<Tugas>>(emptyList())
     val tugasList: LiveData<List<Tugas>> get() = _tugasList
-
-    private val _user = MutableLiveData<Profile?>(null)
-    val user: LiveData<Profile?> = _user
-
-    private val _error = MutableLiveData<String?>(null)
-    val error: LiveData<String?> = _error
-
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> = _isLoading
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     init {
         fetchAllTugas()
@@ -34,21 +29,22 @@ class MainViewModel(private val tugasRepository: TugasRepository) : ViewModel() 
             _isLoading.value = true
             try {
                 val tugas = tugasRepository.getAllTugas()
-                _tugasList.value = tugas.value
+                _tugasList.value = tugas.value ?: emptyList() // Safeguard for null
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = e.message
-                _tugasList.value = emptyList()
+                _tugasList.value = emptyList() // Safeguard for error
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
-    fun addTugas(matkul: String, detailTugas: String) {
+    fun addTugas(matkul: String, detailTugas: String, imageUri: String?) {
         val newTugas = Tugas(
             matkul = matkul,
             detailTugas = detailTugas,
+            imageUri = imageUri,
             selesai = false,
             id = 0 // ID akan di-autogenerate oleh Room
         )
@@ -58,18 +54,5 @@ class MainViewModel(private val tugasRepository: TugasRepository) : ViewModel() 
         }
     }
 
-    fun getProfileUser(username: String) {viewModelScope.launch {
-        _isLoading.value = true
-        try {
-            val profile = profileRepository.getProfile(username)
-            _user.value = profile
-            _error.value = null
-        } catch (e: Exception) {
-            _error.value = e.message
-            _user.value = null
-        } finally {
-            _isLoading.value = false
-        }
+
     }
-    }
-}

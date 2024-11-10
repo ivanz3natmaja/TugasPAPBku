@@ -16,8 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,85 +25,85 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.tifd.projectcomposed.data.model.MainViewModel
 import com.tifd.projectcomposed.data.model.Profile
+import com.tifd.projectcomposed.data.model.ProfileViewModel
 
 @Composable
-    fun ProfileScreen(viewModel: MainViewModel = viewModel()) {
-    val user by remember { mutableStateOf<Profile?>(null) }
-    val errorMessage by remember { mutableStateOf<String?>(null) }
-    val isLoading by remember { mutableStateOf(true) }
+fun ProfileScreen(viewModel: ProfileViewModel = viewModel()) {
+    val user by viewModel.user.collectAsState()
+    val errorMessage by viewModel.error.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
-        LaunchedEffect(Unit) {
-            viewModel.getProfileUser("ivanz3natmaja")
-        }
+    LaunchedEffect(Unit) {
+        viewModel.getProfileUser("ivanz3natmaja")
+    }
 
-        Scaffold { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                when {
-                    isLoading -> {
-                        CircularProgressIndicator()
-                    }
-                    errorMessage != null -> {
-                        Text(
-                            text = "Error: $errorMessage",
-                            color = MaterialTheme.colorScheme.error,
-                            fontSize = 16.sp
-                        )
-                    }
-                    user != null -> {
-                        DetailContent(user = user!!)
-                    }
+    Scaffold { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                isLoading -> {
+                    CircularProgressIndicator()
+                }
+                errorMessage != null -> {
+                    Text(
+                        text = "Error: $errorMessage",
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 16.sp
+                    )
+                }
+                user != null -> {
+                    DetailContent(user = user!!)
                 }
             }
         }
     }
+}
 
-    @Composable
-    fun DetailContent(user: Profile) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+@Composable
+fun DetailContent(user: Profile) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        AsyncImage(
+            model = user.avatarUrl,
+            contentDescription = "User Avatar",
+            contentScale = ContentScale.Crop,
             modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
+                .size(150.dp)
+                .clip(CircleShape)
+        )
+        Text(
+            text = user.name,
+            fontWeight = FontWeight.ExtraBold,
+            fontSize = 20.sp
+        )
+        Text(
+            text = user.login,
+            fontWeight = FontWeight.Light,
+            fontSize = 16.sp
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(32.dp)
         ) {
-            AsyncImage(
-                model = user.avatarUrl,
-                contentDescription = "User Avatar",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(150.dp)
-                    .clip(CircleShape)
-            )
             Text(
-                text = user.name,
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 20.sp
-            )
-            Text(
-                text = user.login,
-                fontWeight = FontWeight.Light,
+                text = "Followers: ${user.followers}",
+                fontWeight = FontWeight.Medium,
                 fontSize = 16.sp
             )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(32.dp)
-            ) {
-                Text(
-                    text = "Followers: ${user.followers}",
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp
-                )
-                Text(
-                    text = "Following: ${user.followingCount}",
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp
-                )
-            }
+            Text(
+                text = "Following: ${user.followingCount}",
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp
+            )
         }
     }
+}
